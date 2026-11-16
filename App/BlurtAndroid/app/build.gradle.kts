@@ -55,6 +55,12 @@ android {
     }
 
     buildTypes {
+        // A debug build is its own app, "Blurt Dev", so it installs next to the
+        // Play Store copy instead of clashing with its signature.
+        debug {
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+        }
         release {
             isMinifyEnabled = false
             signingConfig = signingConfigs.findByName("upload")

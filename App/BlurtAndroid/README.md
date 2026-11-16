@@ -74,7 +74,11 @@ September 2026, doesn't apply to `adb` installs, so you don't need a developer a
    ./gradlew installDebug
    ```
 
-4. Open **Blurt** on the phone and go through the four steps, then turn on **Bubble**.
+4. Open **Blurt Dev** on the phone and go through the four steps, then turn on **Bubble**.
+
+A debug build is its own app, **Blurt Dev** (`com.assemblyai.blurt.android.dev`), so it installs
+next to the Play Store copy rather than clashing with its signature. Both answer Sign in with
+AssemblyAI's redirect, so signing in may ask which app to open: pick Blurt Dev.
 
 Wireless works too: Developer options › **Wireless debugging** › Pair device with pairing code, then
 `adb pair <ip:port>` and `adb connect <ip:port>`.
