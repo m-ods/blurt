@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "Blurt Forms",
+  "version": "0.1.0",
+  "description": "Blurt your Google Form answers; the extension fills in the fields.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmG4eaJ8faHO8kPkvyOphdB8uZfOepCWSjJj+UP1AIUWLQYYvAZbq2d3KcumO0Q5T4nbNMv28Pk1XyoCKSvQJrI9zzcKupScKfxb4LutQWRcFR1G2R5ZssRXfewdJJf8/ZmTiA1TsUXdYhvWmEh4vJs858q14VohUuaEiN8WSz3nPLgw1DrBhYCs8RsEl75dyVQkRbaEUNuVaWRWVLalzyO7qeO6XOTeZDOUFfHiy53F47j+eyl5S5V69HcVIE58Rs+UWaPDXwUKsO6eprNZ36UViNdx4TwRXjcvxMIZaB9Pb8I+ts7Jmm5wBMgyZYHPTMY+apANMl4k7GQVlAkzdjQIDAQAB",
+  "permissions": ["storage", "identity"],
+  "host_permissions": ["https://docs.google.com/forms/*", "https://*.assemblyai.com/*"],
+  "background": {
+    "service_worker": "background.js",
+    "scripts": ["config.js", "auth.js", "background.js"]
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://docs.google.com/forms/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["brand.css", "icons/wordmark.png"],
+      "matches": ["https://docs.google.com/*"]
+    }
+  ],
+  "icons": { "16": "icons/icon-16.png", "32": "icons/icon-32.png", "48": "icons/icon-48.png", "128": "icons/icon-128.png" },
+  "action": {
+    "default_title": "Blurt Forms settings",
+    "default_icon": { "16": "icons/icon-16.png", "32": "icons/icon-32.png" }
+  },
+  "options_ui": { "page": "options.html", "open_in_tab": true },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "blurt-forms@assemblyai.com",
+      "strict_min_version": "121.0",
+      "data_collection_permissions": {
+        "required": ["websiteContent", "authenticationInfo"]
+      }
+    }
+  }
+}

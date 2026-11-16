@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Blurt Forms</title>
+    <link rel="stylesheet" href="brand.css" />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --blurt-wordmark-url: url("icons/wordmark.png");
+      }
+      html,
+      body {
+        min-height: 100%;
+      }
+      body {
+        margin: 0;
+        background: var(--blurt-page);
+        color: var(--blurt-body);
+        font: 15px/1.5 var(--blurt-sans);
+      }
+      body.blurt-grain::after {
+        position: fixed; /* the grain covers the window, not just the content */
+      }
+      main {
+        position: relative;
+        z-index: 2;
+        max-width: 560px;
+        margin: 0 auto;
+        padding: 40px 20px 64px; /* app/page-pad */
+        display: grid;
+        gap: 24px; /* app/section-gap */
+      }
+      header {
+        display: grid;
+        gap: 12px;
+      }
+      header .blurt-wordmark {
+        height: 28px;
+      }
+      header p {
+        margin: 0;
+      }
+      section {
+        display: grid;
+        gap: 12px; /* app/stack-gap */
+      }
+      .blurt-card {
+        display: grid;
+        gap: 12px;
+      }
+      .blurt-card p {
+        margin: 0;
+      }
+      .account-line {
+        color: var(--blurt-text);
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .row .blurt-input {
+        flex: 1;
+        min-width: 200px;
+      }
+      .muted {
+        color: var(--blurt-muted);
+        font-size: 13px;
+      }
+      code {
+        font: 12px/1.5 var(--blurt-mono);
+        color: var(--blurt-text);
+        word-break: break-all;
+      }
+      [hidden] {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body class="blurt-grain">
+    <main>
+      <header>
+        <span class="blurt-wordmark" role="img" aria-label="blurt"></span>
+        <h1 class="blurt-heading">Forms, out loud.</h1>
+        <p>
+          Open a Google Form, click the Blurt box, and Blurt your answers. Blurt
+          Forms works out which answer goes in which field and fills them in. It
+          never submits.
+        </p>
+      </header>
+
+      <section id="access" hidden>
+        <p class="blurt-eyebrow">Site access</p>
+        <div class="blurt-card">
+          <p>
+            Blurt Forms needs access to Google Forms and AssemblyAI to read
+            forms and fill them.
+          </p>
+          <div class="row">
+            <button class="blurt-button primary" id="grant">
+              Allow access
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <p class="blurt-eyebrow">Account</p>
+        <div class="blurt-card">
+          <p class="account-line" id="account-status">…</p>
+          <div class="row">
+            <button class="blurt-button primary" id="sign-in" hidden>
+              Sign in with AssemblyAI
+            </button>
+          </div>
+          <div class="row" id="key-row">
+            <input
+              class="blurt-input"
+              id="api-key"
+              type="password"
+              placeholder="Or paste an AssemblyAI API key"
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <button class="blurt-button" id="save-key">Save key</button>
+          </div>
+          <div class="row" id="signed-in-actions" hidden>
+            <button class="blurt-button" id="sign-out">Sign out</button>
+          </div>
+          <p id="account-error" class="blurt-notice" hidden></p>
+        </div>
+      </section>
+
+      <section>
+        <p class="blurt-eyebrow">Model</p>
+        <div class="blurt-card">
+          <p class="muted">
+            The LLM Gateway model that maps your words to the form. Leave it
+            empty for the default.
+          </p>
+          <div class="row">
+            <input class="blurt-input" id="model" spellcheck="false" />
+            <button class="blurt-button" id="save-model">Save</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="redirect-section" hidden>
+        <p class="blurt-eyebrow">For the Connected App</p>
+        <div class="blurt-card">
+          <p class="muted">
+            The sign-in redirect this browser uses. The Connected App must list
+            it.
+          </p>
+          <code id="redirect"></code>
+        </div>
+      </section>
+    </main>
+    <script src="config.js"></script>
+    <script src="auth.js"></script>
+    <script src="options.js"></script>
+  </body>
+</html>

@@ -1,0 +1,160 @@
+/*
+ * Blurt's design language for the extension: the values in
+ * App/BlurtiOS/Design/tokens.json (the iPhone app's catalog colours, type
+ * roles and radii), which App/BlurtiOS/DESIGN.md describes. Warm paper in the
+ * light, ink under film grain in the dark, serif headlines, uppercase mono
+ * labels, Blurt green as the one accent, rectangular corners. JSON can't feed
+ * CSS here, so the hexes are copied; keep them in step with tokens.json.
+ *
+ * Used by the settings page and, through the panel's shadow root, on the form.
+ */
+
+:root,
+:host {
+  /* keyboard.app/* — light */
+  --blurt-page: #fdfcf8; /* brand.paper/page */
+  --blurt-text: #1d1b16; /* brand.ink */
+  --blurt-body: #4a4945; /* brand.neutral/900 */
+  --blurt-muted: #777673; /* brand.neutral/700 */
+  --blurt-card: #f5f3eb; /* brand.paper/tint */
+  --blurt-card-border: #c7c3b2; /* brand.paper/400 */
+  --blurt-field: #ffffff; /* themes.light/field */
+  --blurt-accent: #01762f; /* brand.green/700 */
+  --blurt-cta-text: #ffffff;
+  --blurt-notice: #e67f36; /* brand.orange: errors, never a red body */
+  --blurt-grain: 0.08; /* opacity/grain-light */
+
+  /* BlurtType: the system's serif, monospaced and default designs (no bundled brand fonts) */
+  --blurt-serif: ui-serif, "New York", Georgia, "Times New Roman", serif;
+  --blurt-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas,
+    monospace;
+  --blurt-sans: -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI",
+    Roboto, sans-serif;
+
+  /* radius/* — rectangular, never a pill */
+  --blurt-radius-button: 4px;
+  --blurt-radius-input: 8px;
+  --blurt-radius-card: 12px;
+  --blurt-radius-hero: 16px;
+
+  --blurt-noise: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .5  0 0 0 0 .5  0 0 0 0 .5  0 0 0 1.4 -.2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+@media (prefers-color-scheme: dark) {
+  :root,
+  :host {
+    --blurt-page: #1d1b16; /* brand.ink: the website's ground */
+    --blurt-text: #f5f3eb; /* brand.paper/tint */
+    --blurt-body: #d2d1d0; /* brand.neutral/300 */
+    --blurt-muted: #a5a4a2; /* brand.neutral/500 */
+    --blurt-card: #26231e; /* brand.ink/800 */
+    --blurt-card-border: #3a362f; /* brand.ink/600 */
+    --blurt-field: #33302a; /* themes.dark/field */
+    --blurt-accent: #67ad82; /* brand.green/400 */
+    --blurt-cta-text: #1d1b16; /* ink on green, as the site */
+    --blurt-grain: 0.14; /* opacity/grain-dark */
+  }
+}
+
+/* --- Roles ---------------------------------------------------------------- */
+
+/* The eyebrow: mono, medium, 12, uppercase, +1.2 (size/eyebrow, tracking/eyebrow). */
+.blurt-eyebrow {
+  font: 500 12px/1.3 var(--blurt-mono);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--blurt-muted);
+  margin: 0;
+}
+
+/* The serif headline (size/title is 34 on the phone; smaller in a browser card). */
+.blurt-heading {
+  font: 400 28px/1.15 var(--blurt-serif);
+  color: var(--blurt-text);
+  margin: 0;
+}
+
+/* The wordmark, tinted with the accent (Design/brand/blurt-ready-logo.png). */
+.blurt-wordmark {
+  display: inline-block;
+  aspect-ratio: 4 / 1;
+  background: var(--blurt-accent);
+  -webkit-mask: var(--blurt-wordmark-url) center / contain no-repeat;
+  mask: var(--blurt-wordmark-url) center / contain no-repeat;
+}
+
+/* The card: tint fill, hairline, radius/card, card-pad 16. */
+.blurt-card {
+  background: var(--blurt-card);
+  border: 1px solid var(--blurt-card-border);
+  border-radius: var(--blurt-radius-card);
+  padding: 16px;
+}
+
+/* BrandButtonStyle: mono, medium, 14, uppercase, +1.4; 40 high, 12 side pad, radius 4. */
+.blurt-button {
+  appearance: none;
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: var(--blurt-radius-button);
+  border: 1px solid var(--blurt-card-border);
+  background: transparent;
+  color: var(--blurt-text);
+  font: 500 14px/1 var(--blurt-mono);
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 0.15s ease-in-out;
+}
+.blurt-button.primary {
+  background: var(--blurt-accent);
+  border-color: var(--blurt-accent);
+  color: var(--blurt-cta-text);
+}
+.blurt-button:active {
+  opacity: 0.7;
+}
+.blurt-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* An input: field fill, hairline, radius/input, input-pad-y 10 by chip-pad-x 12. */
+.blurt-input {
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--blurt-card-border);
+  border-radius: var(--blurt-radius-input);
+  background: var(--blurt-field);
+  color: var(--blurt-text);
+  font: 15px/1.4 var(--blurt-sans);
+}
+.blurt-input::placeholder {
+  color: var(--blurt-muted);
+}
+.blurt-input:focus {
+  outline: 2px solid var(--blurt-accent);
+  outline-offset: -1px;
+  border-color: transparent;
+}
+
+/* Film grain: the brand's texture, over the ground and the panel. */
+.blurt-grain {
+  position: relative;
+  isolation: isolate;
+}
+.blurt-grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image: var(--blurt-noise);
+  opacity: var(--blurt-grain);
+  mix-blend-mode: overlay;
+  z-index: 1;
+}
+
+.blurt-notice {
+  color: var(--blurt-notice);
+}
