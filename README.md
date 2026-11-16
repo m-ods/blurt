@@ -1,3 +1,10 @@
+> **An unofficial fork** of [AssemblyAI/blurt](https://github.com/AssemblyAI/blurt), for
+> experiments that may or may not go upstream: Blurt in Android Auto
+> ([`App/BlurtAndroid`](App/BlurtAndroid/README.md#android-auto)) and Blurt Forms, a browser
+> extension that fills Google Forms ([`App/BlurtForms`](App/BlurtForms/README.md)). It isn't made or
+> supported by AssemblyAI. For Blurt itself, use the
+> [official repo and releases](https://github.com/AssemblyAI/blurt).
+
 <div align="center">
   <picture>
     <source
