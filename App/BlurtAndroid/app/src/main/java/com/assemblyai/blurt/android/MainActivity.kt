@@ -1,6 +1,8 @@
 package com.assemblyai.blurt.android
 
 import android.Manifest
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -8,6 +10,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.text.format.DateUtils
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -338,6 +341,7 @@ class MainActivity : ComponentActivity() {
                 }
 
                 StyleCard()
+                NotesCard()
             }
         }
     }
@@ -434,6 +438,42 @@ class MainActivity : ComponentActivity() {
                         minLines = 3,
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                     )
+                }
+            }
+        }
+    }
+
+    /** Voice notes taken in the car (Android Auto), newest first. */
+    @Composable
+    private fun NotesCard() {
+        val notes by Notes.all(this).collectAsState()
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Notes", style = MaterialTheme.typography.titleMedium)
+                if (notes.isEmpty()) {
+                    Text(
+                        "Notes you take with Blurt in Android Auto show up here.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                notes.forEach { note ->
+                    Column {
+                        Text(note.text, style = MaterialTheme.typography.bodyLarge)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                DateUtils.getRelativeTimeSpanString(note.id).toString(),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.weight(1f),
+                            )
+                            TextButton(onClick = {
+                                val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+                                clipboard.setPrimaryClip(ClipData.newPlainText("Blurt note", note.text))
+                            }) { Text("Copy") }
+                            TextButton(onClick = { Notes.delete(this@MainActivity, note.id) }) { Text("Delete") }
+                        }
+                    }
                 }
             }
         }

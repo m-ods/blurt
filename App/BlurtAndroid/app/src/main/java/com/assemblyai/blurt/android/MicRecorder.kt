@@ -12,12 +12,61 @@ import kotlinx.coroutines.launch
 import kotlin.math.sqrt
 
 /**
+ * Where the audio comes from: the phone's mic ([PhoneMic]) or, in Android Auto,
+ * the car's ([CarMic]). Either way it is 16 kHz mono 16-bit PCM.
+ */
+interface PcmSource {
+    /** Throws [IllegalStateException] when the microphone can't be opened. */
+    fun start()
+
+    /** Bytes read into [buffer]: 0 to try again, negative once the source has ended. */
+    fun read(buffer: ByteArray): Int
+
+    fun stop()
+}
+
+/** The phone's own microphone. Callers check RECORD_AUDIO before creating one. */
+@SuppressLint("MissingPermission")
+class PhoneMic : PcmSource {
+    private val minBuffer = AudioRecord.getMinBufferSize(
+        MicRecorder.SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT,
+    )
+
+    // VOICE_RECOGNITION: the source tuned for speech-to-text, with no AGC or
+    // noise suppression that a call would add.
+    private val record = AudioRecord(
+        MediaRecorder.AudioSource.VOICE_RECOGNITION,
+        MicRecorder.SAMPLE_RATE,
+        AudioFormat.CHANNEL_IN_MONO,
+        AudioFormat.ENCODING_PCM_16BIT,
+        maxOf(minBuffer, MicRecorder.FRAME_BYTES * 4),
+    )
+
+    override fun start() {
+        // Another app holding the mic, or the permission revoked since the check.
+        check(record.state == AudioRecord.STATE_INITIALIZED) { "The microphone isn't available" }
+        record.startRecording()
+    }
+
+    // AudioRecord's errors are negative too; they mean "try again" here, not "ended".
+    override fun read(buffer: ByteArray): Int = record.read(buffer, 0, buffer.size).coerceAtLeast(0)
+
+    override fun stop() {
+        if (record.recordingState == AudioRecord.RECORDSTATE_RECORDING) record.stop()
+        record.release()
+    }
+}
+
+/**
  * Records 16 kHz mono 16-bit PCM, exactly what the dictation route wants, so
  * the frames go on the wire untouched. Frames are 100 ms each.
  *
  * Callers check RECORD_AUDIO before starting.
  */
-class MicRecorder(private val onLevel: (Float) -> Unit) {
+class MicRecorder(
+    private val open: () -> PcmSource = ::PhoneMic,
+    private val onLevel: (Float) -> Unit,
+) {
 
     @Volatile private var running = false
 
@@ -25,42 +74,28 @@ class MicRecorder(private val onLevel: (Float) -> Unit) {
     @Volatile var bytesRecorded = 0L
         private set
 
-    @SuppressLint("MissingPermission")
     fun start(scope: CoroutineScope): ReceiveChannel<ByteArray> {
         val frames = Channel<ByteArray>(Channel.UNLIMITED)
-        val minBuffer = AudioRecord.getMinBufferSize(
-            SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT,
-        )
-        // VOICE_RECOGNITION: the source tuned for speech-to-text, with no AGC or
-        // noise suppression that a call would add.
-        val record = AudioRecord(
-            MediaRecorder.AudioSource.VOICE_RECOGNITION,
-            SAMPLE_RATE,
-            AudioFormat.CHANNEL_IN_MONO,
-            AudioFormat.ENCODING_PCM_16BIT,
-            maxOf(minBuffer, FRAME_BYTES * 4),
-        )
+        val source = open()
         running = true
         scope.launch(Dispatchers.IO) {
             try {
-                // Another app holding the mic, or the permission revoked since
-                // the check: close the channel with the reason instead of crashing.
-                check(record.state == AudioRecord.STATE_INITIALIZED) { "The microphone isn't available" }
-                record.startRecording()
+                source.start()
                 val buffer = ByteArray(FRAME_BYTES)
                 while (running && bytesRecorded < MAX_BYTES) {
-                    val read = record.read(buffer, 0, buffer.size)
-                    if (read <= 0) continue
+                    val read = source.read(buffer)
+                    if (read < 0) break
+                    if (read == 0) continue
                     bytesRecorded += read
                     frames.send(buffer.copyOf(read))
                     onLevel(level(buffer, read))
                 }
                 frames.close()
             } catch (e: IllegalStateException) {
+                // Close the channel with the reason instead of crashing.
                 frames.close(e)
             } finally {
-                if (record.recordingState == AudioRecord.RECORDSTATE_RECORDING) record.stop()
-                record.release()
+                source.stop()
             }
         }
         return frames
@@ -86,7 +121,7 @@ class MicRecorder(private val onLevel: (Float) -> Unit) {
 
     companion object {
         const val SAMPLE_RATE = 16_000
-        private const val FRAME_BYTES = SAMPLE_RATE * 2 / 10
+        const val FRAME_BYTES = SAMPLE_RATE * 2 / 10
         // The route's limits (`SyncSTTLimits` on the Mac): 0.1 s to 1200 s.
         const val MIN_BYTES = SAMPLE_RATE * 2 / 10
         private const val MAX_BYTES = SAMPLE_RATE * 2 * 1200L

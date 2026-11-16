@@ -138,6 +138,56 @@ lets you register the app and install it on up to 20 devices without ID verifica
 Console's internal testing track is the next step after that. Both need a release build signed with
 your own key, which this prototype doesn't set up yet.
 
+## Android Auto
+
+On the car's screen Blurt is one **Talk** button and your latest notes. Tap Talk and speak; Blurt
+stops listening when you stop talking, then does one of three things:
+
+- **A note** ("remind me to call the dentist"): saved, and listed in the phone app under Notes.
+- **Navigate** ("take me to the nearest gas station"): hands the place to the car's navigation app.
+- **Music** ("play Taylor Swift on Spotify", "skip this song"): play-from-search to a music app,
+  or a media key for pause, resume, next and previous.
+
+It is the same dictation request with a different `llm_instruction` (`CarCommand.INSTRUCTION`): the
+LLM answers with one line of JSON naming the action, and anything else falls back to a note of the
+verbatim transcript. The car's mic comes from `CarAudioRecord`, already in the route's 16 kHz mono
+PCM.
+
+| File                    | What it does                                                                      |
+| ----------------------- | --------------------------------------------------------------------------------- |
+| `BlurtCarAppService.kt` | The Android Auto entry point, the car's mic, the home screen and a note's screen. |
+| `CarListenScreen.kt`    | Listens, stops on silence, sends the request, carries out the command.            |
+| `CarCommand.kt`         | The router instruction and the parser for its JSON reply.                         |
+| `MediaControl.kt`       | Play-from-search and media keys. Needs no extra permission.                       |
+| `Notes.kt`              | The notes, in a JSON file in app storage, shared by the car and the phone app.    |
+
+### Test it on your Mac with the Desktop Head Unit
+
+The Desktop Head Unit (DHU) is Google's car-screen emulator: a window on your Mac that your phone
+projects Android Auto into, over USB. It uses the Mac's microphone as the car's.
+
+1. Once: `sdkmanager "extras;google;auto"`.
+2. On the phone, turn on Android Auto's developer mode: Settings › search **Android Auto** › scroll to
+   **Version** and tap it ten times. Then in the ⋮ menu › **Developer settings**, turn on
+   **Unknown sources** (a debug build isn't from Play, and Android Auto hides it otherwise), and
+   in the ⋮ menu tap **Start head unit server**.
+3. Install the app (`./gradlew installDebug`), open it, and sign in or paste your key.
+4. Connect and start the DHU:
+
+   ```bash
+   adb forward tcp:5277 tcp:5277
+   $ANDROID_HOME/extras/google/auto/desktop-head-unit
+   ```
+
+5. In the DHU, open the app launcher and tap **Blurt**. The first Talk asks for the microphone on
+   the phone if Blurt doesn't have it yet. macOS may ask whether Terminal can use the microphone.
+
+For navigation and music, the phone needs Google Maps (or Waze) and a music app such as Spotify.
+
+**The category is a placeholder.** Play only lets apps into Android Auto in set categories, and a
+voice-notes app has no exact fit; the manifest says IOT so it runs locally. Settle that before
+uploading a build with the car service to Play.
+
 ## Not done yet
 
 - Key terms, text shortcuts, more than one custom style, recent dictations in `stt_prompt`.

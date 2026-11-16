@@ -82,5 +82,9 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.9.3")
     implementation("androidx.browser:browser:1.8.0")
     implementation("androidx.core:core-ktx:1.15.0")
+    // Android Auto: templates, the car's mic (CarAudioRecord), and the
+    // projected-host plumbing that phone-to-car Android Auto needs.
+    implementation("androidx.car.app:app:1.7.0")
+    implementation("androidx.car.app:app-projected:1.7.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
 }

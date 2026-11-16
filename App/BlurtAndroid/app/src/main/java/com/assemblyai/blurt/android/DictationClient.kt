@@ -35,6 +35,9 @@ class DictationClient(
     /** The key itself was refused: a signed-in key may just need renewing. */
     class KeyRejected : DictationException("AssemblyAI didn't accept your API key")
 
+    /** What the route sent back: the verbatim transcript and the LLM's reply to the instruction, if any. */
+    data class Result(val text: String, val rewrite: String?)
+
     /**
      * Streams [frames] (16 kHz mono S16LE) and returns the text to insert: the
      * cleaned-up rewrite when the service produced one, otherwise the verbatim
@@ -42,6 +45,10 @@ class DictationClient(
      * transcription to continue it.
      */
     suspend fun transcribe(frames: ReceiveChannel<ByteArray>, sttPrompt: String): String =
+        transcribeRaw(frames, sttPrompt).let { it.rewrite ?: it.text }
+
+    /** [transcribe], keeping both halves of the reply apart (the car reads the rewrite as a command). */
+    suspend fun transcribeRaw(frames: ReceiveChannel<ByteArray>, sttPrompt: String): Result =
         withContext(Dispatchers.IO) {
             val boundary = "blurt-${UUID.randomUUID()}"
             val connection = (URL(endpoint).openConnection() as HttpURLConnection).apply {
@@ -111,15 +118,15 @@ class DictationClient(
                 "Content-Type: audio/pcm\r\n\r\n"
             ).toByteArray()
 
-    /** The rewrite is best-effort: null or blank falls back to the verbatim `text`. */
-    private fun transcript(body: String): String {
+    /** The rewrite is best-effort: null or blank comes back as null. */
+    private fun transcript(body: String): Result {
         val json = try {
             JSONObject(body)
         } catch (e: org.json.JSONException) {
             throw DictationException("AssemblyAI sent a response Blurt couldn't read")
         }
         val rewrite = if (json.isNull("llm_response")) null else json.optString("llm_response")
-        return rewrite?.takeIf { it.isNotBlank() } ?: json.optString("text")
+        return Result(json.optString("text"), rewrite?.takeIf { it.isNotBlank() })
     }
 
     /** The route documents two error shapes, `{error, error_code}` and `{status, title, detail}`. */
