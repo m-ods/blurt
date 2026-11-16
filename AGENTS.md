@@ -126,6 +126,11 @@ App/BlurtiOS/                the iPhone app and its keyboard (README.md there is
                              type roles, brand colours (one accent token), card, page, brandForm,
                              Eyebrow, BrandButtonStyle, Wordmark, FilmGrain. Static, SwiftUI only,
                              `package` access; iPhone only for now (the Mac keeps Branding/)
+App/BlurtAndroid/            prototype Android app (README.md there is the guide): Kotlin, Gradle,
+                             a floating bubble over a microphone foreground service. Doesn't use
+                             the engine; DictationClient.kt mirrors AssemblyAITranscriber, and
+                             CleanupInstruction.kt and Styles.kt copy Swift text verbatim. Not
+                             built or checked by CI
 Tests/BlurtEngineTests/      Swift Testing suites; Stubs/ holds the seam doubles
 scripts/                     check.sh, check-portability.sh, check-invariants.sh,
                              bootstrap.sh, dev-build.sh, uitest.sh, leaks.sh, release*.sh,
